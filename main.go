@@ -9,13 +9,17 @@ func main() {
 		fmt.Printf("OP: %s\n", operation)
 	} */
 
-	wi := src.NewWaitItem()
-	wi.EnqueueItem("x", 1)
-	wi.EnqueueItem("x", 2)
-	wi.EnqueueItem("z", 1)
-	wi.EnqueueItem("y", 3)
-	wi.EnqueueItem("y", 5)
+	graph := src.NewGraph()
+	graph.AddEdge(1, 2)
+	graph.AddEdge(3, 2)
+	graph.PrintGraphTable()
 
-	wi.ReadAll()
+	graph.AddEdge(2, 3)
+
+	if graph.HasCycle() {
+		graph.RemoveEdge(2, 3)
+	}
+
+	graph.PrintGraphTable()
 
 }
