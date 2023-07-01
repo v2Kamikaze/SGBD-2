@@ -3,11 +3,12 @@ package src
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/v2Kamikaze/SGBD-2/src/transaction"
 )
 
 func InputTransactions() []string {
@@ -16,29 +17,30 @@ func InputTransactions() []string {
 
 	if input, err := scan.ReadBytes('\n'); err == nil {
 		input = bytes.Replace(input, []byte("\r\n"), []byte(""), -1)
-		for _, operation := range ParseOperations(string(input)) {
-			fmt.Println("OP: ", operation)
-		}
+		ParseOperations(string(input))
 	}
 
 	return nil
 }
 
-func ParseOperations(src string) []*Operation {
+func ParseOperations(src string) (transaction.OperationsTable, []*transaction.Operation) {
+	table := transaction.NewOperationsTable()
 	ops := strings.SplitAfter(src, ")")
 	ops = ops[:len(ops)-1]
 
-	operations := make([]*Operation, len(ops))
+	operations := make([]*transaction.Operation, len(ops))
 
-	for i, op := range ops {
-		operations[i] = ParseOperation(op)
+	for idx, op := range ops {
+		operation := ParseOperation(op)
+		operations[idx] = operation
+		table.AddOperation(operation)
 	}
 
-	return operations
+	return table, operations
 }
 
-func ParseOperation(op string) *Operation {
-	var operation *Operation
+func ParseOperation(op string) *transaction.Operation {
+	var operation *transaction.Operation
 	op = strings.Replace(op, "(", " ", -1)
 	op = strings.Replace(op, ")", " ", -1)
 	keywords := strings.Split(op, " ")
@@ -47,19 +49,19 @@ func ParseOperation(op string) *Operation {
 
 	if strings.Contains(opQuery, "BT") {
 		id := StrToInt(param)
-		operation = NewOperation(id, OperationTypeFromStr("BT"), "")
+		operation = transaction.NewOperation(id, transaction.OperationTypeFromStr("BT"), "")
 
 	} else if strings.Contains(opQuery, "r") {
 		id := GetTransactionID(opQuery, "r")
-		operation = NewOperation(id, OperationTypeFromStr("r"), param)
+		operation = transaction.NewOperation(id, transaction.OperationTypeFromStr("r"), param)
 
 	} else if strings.Contains(opQuery, "w") {
 		id := GetTransactionID(opQuery, "w")
-		operation = NewOperation(id, OperationTypeFromStr("w"), param)
+		operation = transaction.NewOperation(id, transaction.OperationTypeFromStr("w"), param)
 
 	} else if strings.Contains(opQuery, "C") {
 		id := StrToInt(param)
-		operation = NewOperation(id, OperationTypeFromStr("C"), "")
+		operation = transaction.NewOperation(id, transaction.OperationTypeFromStr("C"), "")
 	}
 
 	return operation

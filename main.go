@@ -2,24 +2,19 @@ package main
 
 import (
 	"github.com/v2Kamikaze/SGBD-2/src"
+	"github.com/v2Kamikaze/SGBD-2/src/lock"
+	"github.com/v2Kamikaze/SGBD-2/src/transaction"
 )
 
 func main() {
-	/* for _, operation := range src.ParseOperations("BT(1)r1(x)BT(2)w2(x)r2(y)r1(y)C(1)r2(z)C(2)") {
-		fmt.Printf("OP: %s\n", operation)
-	} */
 
-	graph := src.NewGraph()
-	graph.AddEdge(1, 2)
-	graph.AddEdge(3, 2)
-	graph.PrintGraphTable()
+	opTable, _ /* scheduling */ := src.ParseOperations("BT(1)r1(x)BT(2)w2(x)r2(y)r1(y)C(1)r2(z)C(2)")
+	trManager := transaction.NewTrManagerFromOperationsTable(opTable)
+	trManager.PrintTransactions()
 
-	graph.AddEdge(2, 3)
+	lockTable := lock.NewLockTable()
 
-	if graph.HasCycle() {
-		graph.RemoveEdge(2, 3)
-	}
+	lockTable.ReadLock(trManager.Transactions()[1], "x")
 
-	graph.PrintGraphTable()
-
+	lockTable.PrintTable()
 }
