@@ -35,16 +35,20 @@ func (lt *LockTable) ReadLock(tr int, itemKey string) int {
 func (lt *LockTable) WriteLock(tr int, itemKey string) int {
 
 	for _, lock := range lt.locks {
-		if lock.LockType == WriteLock && lock.ItemKey == itemKey && lock.TrID != tr {
+		if lock.ItemKey == itemKey && lock.TrID != tr {
 			return lock.TrID
 		}
 
+	}
+
+	for _, lock := range lt.locks {
 		// Upgrade de Lock
 		if lock.TrID == tr && lock.LockType == ReadLock && lock.ItemKey == itemKey {
 			lock.LockType = WriteLock
 			lock.Duration = DefaultWriteDuration
 			return -1
 		}
+
 	}
 
 	lock := NewLock(itemKey, tr, DefaultReadDuration, WriteLock)

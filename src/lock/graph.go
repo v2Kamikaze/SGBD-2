@@ -70,5 +70,5 @@ func (g *Graph) PrintGraphTable() {
 		}
 		fmt.Println()
 	}
-	fmt.Println("|-------------------------------------|")
+	fmt.Printf("|-------------------------------------|\n\n")
 }

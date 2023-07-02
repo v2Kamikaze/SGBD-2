@@ -31,5 +31,5 @@ func (wi WaitItem) PrintWaitList() {
 		fmt.Printf("%s : ", key)
 		queue.Read()
 	}
-	fmt.Println("|-------------------------------------|")
+	fmt.Printf("|-------------------------------------|\n\n")
 }
