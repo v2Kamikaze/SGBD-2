@@ -5,13 +5,12 @@ import (
 )
 
 type Transaction struct {
-	id         int
-	status     TrStatus
-	operations []*Operation
+	id     int
+	status TrStatus
 }
 
-func NewTransaction(id int, operations []*Operation) *Transaction {
-	return &Transaction{id, Active, operations}
+func NewTransaction(id int) *Transaction {
+	return &Transaction{id, Active}
 }
 
 func (tm *Transaction) ID() int {
@@ -22,21 +21,10 @@ func (tm *Transaction) Status() TrStatus {
 	return tm.status
 }
 
-func (tm *Transaction) Operation() []*Operation {
-	return tm.operations
-}
-
 func (tm *Transaction) UpdateStatus(status TrStatus) {
 	tm.status = status
 }
 
 func (tm *Transaction) String() string {
-	str := "[ "
-
-	for _, op := range tm.operations {
-		str += op.String() + " "
-	}
-	str += "]"
-
-	return fmt.Sprintf("(ID: %d, STATUS: %s, OPERATIONS: %s)", tm.id, tm.status, str)
+	return fmt.Sprintf("(ID: %d, STATUS: %s)", tm.id, tm.status)
 }

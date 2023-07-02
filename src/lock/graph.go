@@ -62,7 +62,7 @@ func isCyclic(vertex int, visited, recursionStack map[int]bool, graph *Graph) bo
 }
 
 func (g *Graph) PrintGraphTable() {
-	fmt.Println("Graph Table:")
+	fmt.Println("|-------------- Wait For -------------|")
 	for vertex, neighbors := range g.vertices {
 		fmt.Printf("%d -> ", vertex)
 		for _, neighbor := range neighbors {
@@ -70,4 +70,5 @@ func (g *Graph) PrintGraphTable() {
 		}
 		fmt.Println()
 	}
+	fmt.Println("|-------------------------------------|")
 }

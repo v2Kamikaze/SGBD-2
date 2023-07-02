@@ -23,8 +23,7 @@ func InputTransactions() []string {
 	return nil
 }
 
-func ParseOperations(src string) (transaction.OperationsTable, []*transaction.Operation) {
-	table := transaction.NewOperationsTable()
+func ParseOperations(src string) []*transaction.Operation {
 	ops := strings.SplitAfter(src, ")")
 	ops = ops[:len(ops)-1]
 
@@ -33,10 +32,9 @@ func ParseOperations(src string) (transaction.OperationsTable, []*transaction.Op
 	for idx, op := range ops {
 		operation := ParseOperation(op)
 		operations[idx] = operation
-		table.AddOperation(operation)
 	}
 
-	return table, operations
+	return operations
 }
 
 func ParseOperation(op string) *transaction.Operation {

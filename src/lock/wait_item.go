@@ -25,9 +25,11 @@ func (wi *WaitItem) Dequeue(itemKey string) (int, error) {
 	return waitItem[itemKey].Dequeue()
 }
 
-func (wi WaitItem) ReadAll() {
+func (wi WaitItem) PrintWaitList() {
+	fmt.Println("|------------- Wait Item -------------|")
 	for key, queue := range wi {
 		fmt.Printf("%s : ", key)
 		queue.Read()
 	}
+	fmt.Println("|-------------------------------------|")
 }

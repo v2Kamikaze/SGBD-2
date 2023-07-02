@@ -1,6 +1,8 @@
 package transaction
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type TrStatus int
 
@@ -25,45 +27,70 @@ func (tr TrStatus) String() string {
 }
 
 type TrManager struct {
-	transactions map[int]*Transaction
+	transactions []*Transaction
 }
 
 func NewTrManager() *TrManager {
-	return &TrManager{make(map[int]*Transaction)}
+	return &TrManager{make([]*Transaction, 0)}
 }
 
-func NewTrManagerFromOperationsTable(opTable OperationsTable) *TrManager {
+func NewTrManagerFromOperations(operations []*Operation) *TrManager {
 	trManager := NewTrManager()
 
-	for id, operations := range opTable {
-		trManager.AddTransaction(NewTransaction(id, operations))
+	for _, op := range operations {
+		trManager.AddTransaction(NewTransaction(op.ID()))
 	}
 
 	return trManager
 }
 
 func (trm *TrManager) AddTransaction(tr *Transaction) {
-	if _, ok := trm.transactions[tr.ID()]; !ok {
-		trm.transactions[tr.ID()] = tr
+	if trm.Contains(tr.ID()) {
 		return
 	}
+
+	trm.transactions = append(trm.transactions, tr)
 }
 
-func (trm *TrManager) Transactions() map[int]*Transaction {
+func (trm *TrManager) Contains(id int) bool {
+	for _, tr := range trm.transactions {
+		if tr.ID() == id {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (trm *TrManager) Transactions() []*Transaction {
 	return trm.transactions
 }
 
-func (trm *TrManager) GetTransactionStatus(id int) (TrStatus, error) {
-	if tr, ok := trm.transactions[id]; ok {
-		return tr.Status(), nil
+func (trm *TrManager) GetTransaction(id int) *Transaction {
+	for idx := range trm.transactions {
+		if trm.transactions[idx].ID() == id {
+			return trm.transactions[idx]
+		}
 	}
 
-	return Finished, nil
+	return nil
+}
+
+func (trm *TrManager) GetTransactionStatus(id int) (TrStatus, error) {
+	for _, tr := range trm.transactions {
+		if tr.ID() == id {
+			return tr.Status(), nil
+		}
+	}
+
+	return Finished, fmt.Errorf("não existe nenhuma transação na tabela com o id %d", id)
 }
 
 func (trm *TrManager) UpdateStatus(id int, status TrStatus) {
-	if tr, ok := trm.transactions[id]; ok {
-		tr.UpdateStatus(status)
+	for _, tr := range trm.transactions {
+		if tr.ID() == id {
+			tr.UpdateStatus(status)
+		}
 	}
 }
 
@@ -71,8 +98,8 @@ func (trm *TrManager) PrintTransactions() {
 	fmt.Println("|------------------------|")
 	fmt.Println("|   TrID   |   Status    |")
 	fmt.Println("|------------------------|")
-	for id, transaction := range trm.transactions {
-		fmt.Printf("|   %-6d |   %-9s |\n", id, transaction.Status())
+	for _, transaction := range trm.transactions {
+		fmt.Printf("|   %-6d |   %-9s |\n", transaction.ID(), transaction.Status())
 	}
-	fmt.Println("|------------------------|")
+	fmt.Printf("|------------------------|\n\n")
 }
