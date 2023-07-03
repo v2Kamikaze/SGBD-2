@@ -45,6 +45,10 @@ func (s *Scheduler) Start() {
 		trID := op.ID()
 		trStatus := s.trManager.GetTransaction(trID).Status()
 
+		if trStatus == transaction.Aborted {
+			continue
+		}
+
 		if trStatus != transaction.Aborted || op.Type() != transaction.BeginOp {
 			switch op.Type() {
 			case transaction.ReadOp:
@@ -74,9 +78,17 @@ func (s *Scheduler) Start() {
 							break // Não continua executando operações em outros objetos
 						} else {
 							fmt.Printf("Operação %d foi abortada\n", op.ID())
-
 							// Transação atual é abortada (algoritmo Wait Die)
 							s.trManager.UpdateStatus(trID, transaction.Aborted)
+							s.waitFor.RemoveVertex(op.ID())
+							s.waitItem.Dequeue(op.Item())
+							for _, iop := range s.scheduling {
+								tr := s.trManager.GetTransaction(op.ID())
+								// Liberando todos os locks da transação
+								if iop.ID() == trID {
+									s.lockTable.Unlock(tr, iop.Item())
+								}
+							}
 							break // Não continua executando operações em outros objetos
 						}
 					} else {
@@ -116,6 +128,15 @@ func (s *Scheduler) Start() {
 							fmt.Printf("Operação %d foi abortada\n", op.ID())
 							// Transação atual é abortada (algoritmo Wait Die)
 							s.trManager.UpdateStatus(trID, transaction.Aborted)
+							s.waitFor.RemoveVertex(op.ID())
+							s.waitItem.Dequeue(op.Item())
+							for _, iop := range s.scheduling {
+								tr := s.trManager.GetTransaction(op.ID())
+								// Liberando todos os locks da transação
+								if iop.ID() == trID {
+									s.lockTable.Unlock(tr, iop.Item())
+								}
+							}
 							break // Não continua executando operações em outros objetos
 						}
 					} else {
@@ -138,6 +159,7 @@ func (s *Scheduler) Start() {
 					s.trManager.UpdateStatus(trID, transaction.Finished)
 					s.waitItem.Dequeue(op.Item())   // Remove a transação da fila de espera do item
 					s.waitFor.RemoveVertex(op.ID()) // Remover do grafo a aresta que liga Ti até Tj
+
 				} else {
 					s.delayed.Enqueue(idx)
 					s.trManager.UpdateStatus(op.ID(), transaction.Waiting)
@@ -162,6 +184,11 @@ func (s *Scheduler) TryRestartWaitingTransactions() {
 	for _, idx := range *(s.delayed) {
 		op := s.scheduling[idx]
 		trID := op.ID()
+		trStatus, _ := s.trManager.GetTransactionStatus(trID)
+
+		if trStatus == transaction.Aborted {
+			continue
+		}
 
 		// A transação tá livre para executar, já que não está mais esperando
 		if len(s.waitFor.GetNeighbors(op.ID())) == 0 {
@@ -197,6 +224,16 @@ func (s *Scheduler) TryRestartWaitingTransactions() {
 
 							// Transação atual é abortada (algoritmo Wait Die)
 							s.trManager.UpdateStatus(trID, transaction.Aborted)
+							s.waitFor.RemoveVertex(op.ID())
+							s.waitItem.Dequeue(op.Item())
+							for _, iop := range s.scheduling {
+								tr := s.trManager.GetTransaction(op.ID())
+								// Liberando todos os locks da transação
+								if iop.ID() == trID {
+									s.lockTable.Unlock(tr, iop.Item())
+								}
+							}
+
 							break // Não continua executando operações em outros objetos
 						}
 					}
@@ -234,6 +271,15 @@ func (s *Scheduler) TryRestartWaitingTransactions() {
 							fmt.Printf("Operação %d foi abortada\n", op.ID())
 							// Transação atual é abortada (algoritmo Wait Die)
 							s.trManager.UpdateStatus(trID, transaction.Aborted)
+							s.waitFor.RemoveVertex(op.ID())
+							s.waitItem.Dequeue(op.Item())
+							for _, iop := range s.scheduling {
+								tr := s.trManager.GetTransaction(op.ID())
+								// Liberando todos os locks da transação
+								if iop.ID() == trID {
+									s.lockTable.Unlock(tr, iop.Item())
+								}
+							}
 							break // Não continua executando operações em outros objetos
 						}
 					} else {

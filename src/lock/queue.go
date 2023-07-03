@@ -36,6 +36,15 @@ func (q *Queue) Dequeue() (int, error) {
 	return e, nil
 }
 
+func (q *Queue) Remove(item int) {
+	for i := range *q {
+		if (*q)[i] == item {
+			q.RemoveAt(i)
+			return
+		}
+	}
+}
+
 func (q *Queue) RemoveAt(index int) error {
 	if index < 0 || index >= len(*q) {
 		return errors.New("índice fora dos limites")
