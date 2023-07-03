@@ -30,6 +30,20 @@ func (g *Graph) GetNeighbors(vertex int) []int {
 	return g.vertices[vertex]
 }
 
+func (g *Graph) RemoveVertex(id int) {
+	// Remove todas as arestas que apontam para o vértice removido
+	for vertex, neighbors := range g.vertices {
+		for _, neighbor := range neighbors {
+			if neighbor == id {
+				g.RemoveEdge(vertex, id)
+			}
+		}
+	}
+
+	// Remove o vértice do mapa de vértices
+	delete(g.vertices, id)
+}
+
 func (g *Graph) HasCycle() bool {
 	visited := make(map[int]bool)
 	recursionStack := make(map[int]bool)

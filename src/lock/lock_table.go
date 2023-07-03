@@ -2,11 +2,9 @@ package lock
 
 import (
 	"fmt"
-)
 
-type TrScope int
-type TrDuration int
-type TrLockType int
+	"github.com/v2Kamikaze/SGBD-2/src/transaction"
+)
 
 var DefaultReadDuration TrDuration = Short
 var DefaultWriteDuration TrDuration = Long
@@ -19,53 +17,52 @@ func NewLockTable() *LockTable {
 	return &LockTable{make([]*Lock, 0)}
 }
 
-func (lt *LockTable) ReadLock(tr int, itemKey string) int {
+func (lt *LockTable) ReadLock(tr *transaction.Transaction, itemKey string) int {
 
 	for _, lock := range lt.locks {
-		if lock.LockType == WriteLock && lock.ItemKey == itemKey && lock.TrID != tr {
+		if lock.LockType == WriteLock && lock.ItemKey == itemKey && lock.TrID != tr.ID() {
 			return lock.TrID
 		}
 	}
 
-	lock := NewLock(itemKey, tr, DefaultReadDuration, ReadLock)
+	lock := NewLock(itemKey, tr.ID(), DefaultReadDuration, ReadLock)
 	lt.locks = append(lt.locks, lock)
 	return -1
 }
 
-func (lt *LockTable) WriteLock(tr int, itemKey string) int {
+func (lt *LockTable) WriteLock(tr *transaction.Transaction, itemKey string) int {
 
 	for _, lock := range lt.locks {
-		if lock.ItemKey == itemKey && lock.TrID != tr {
+		if lock.ItemKey == itemKey && lock.TrID != tr.ID() {
 			return lock.TrID
 		}
 
 	}
 
-	for _, lock := range lt.locks {
-		// Upgrade de Lock
-		if lock.TrID == tr && lock.LockType == ReadLock && lock.ItemKey == itemKey {
-			lock.LockType = WriteLock
-			lock.Duration = DefaultWriteDuration
-			return -1
-		}
-
-	}
-
-	lock := NewLock(itemKey, tr, DefaultReadDuration, WriteLock)
+	lock := NewLock(itemKey, tr.ID(), DefaultReadDuration, WriteLock)
 	lt.locks = append(lt.locks, lock)
 	return -1
 }
 
-func (lt *LockTable) Unlock(tr int, itemKey string) {
+func (lt *LockTable) Unlock(tr *transaction.Transaction, itemKey string) {
 	newLocks := make([]*Lock, 0)
 
 	for idx := range lt.locks {
-		if lt.locks[idx].TrID != tr || lt.locks[idx].ItemKey != itemKey {
+		if lt.locks[idx].TrID != tr.ID() || lt.locks[idx].ItemKey != itemKey {
 			newLocks = append(newLocks, lt.locks[idx])
 		}
 	}
 
 	lt.locks = newLocks
+}
+
+func (lt *LockTable) IsWriteLock(itemKey string) bool {
+	for _, lock := range lt.locks {
+		if lock.ItemKey == itemKey && lock.LockType == WriteLock {
+			return true
+		}
+	}
+	return false
 }
 
 func (lt *LockTable) PrintTable() {

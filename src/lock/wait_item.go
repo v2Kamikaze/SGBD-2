@@ -1,12 +1,19 @@
 package lock
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type WaitItem map[string]*Queue
 
 func NewWaitItem() *WaitItem {
 	wi := make(WaitItem)
 	return &wi
+}
+
+func (wi *WaitItem) Self() map[string]*Queue {
+	return *wi
 }
 
 func (wi *WaitItem) EnqueueItem(itemKey string, trID int) {
@@ -21,8 +28,40 @@ func (wi *WaitItem) EnqueueItem(itemKey string, trID int) {
 }
 
 func (wi *WaitItem) Dequeue(itemKey string) (int, error) {
-	waitItem := *wi
-	return waitItem[itemKey].Dequeue()
+	queue, ok := (*wi)[itemKey]
+	if !ok {
+		return 0, errors.New("fila vazia")
+	}
+
+	trID, err := queue.Dequeue()
+	if err != nil {
+		// Fila vazia, remove o item do WaitItem
+		delete(*wi, itemKey)
+	}
+
+	return trID, err
+}
+
+func (wi *WaitItem) InQueue(id int) bool {
+	for key := range *wi {
+		if (*wi)[key].InQueue(id) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (wi *WaitItem) DeleteKey(itemKey string) {
+	delete(*wi, itemKey)
+}
+
+func (wi *WaitItem) IsWaiting(itemKey string, id int) bool {
+	if _, ok := (*wi)[itemKey]; ok {
+		return (*wi)[itemKey].InQueue(id)
+	}
+
+	return false
 }
 
 func (wi WaitItem) PrintWaitList() {

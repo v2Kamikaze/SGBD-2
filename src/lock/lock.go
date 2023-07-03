@@ -1,5 +1,9 @@
 package lock
 
+type TrScope int
+type TrDuration int
+type TrLockType int
+
 const (
 	Object TrScope = iota
 	Predicate
