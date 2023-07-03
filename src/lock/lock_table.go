@@ -19,6 +19,10 @@ func NewLockTable() *LockTable {
 
 func (lt *LockTable) ReadLock(tr *transaction.Transaction, itemKey string) int {
 
+	if lt.CheckLockExistence(tr.ID(), ReadLock, itemKey) {
+		return -1
+	}
+
 	for _, lock := range lt.locks {
 		if lock.LockType == WriteLock && lock.ItemKey == itemKey && lock.TrID != tr.ID() {
 			return lock.TrID
@@ -31,6 +35,10 @@ func (lt *LockTable) ReadLock(tr *transaction.Transaction, itemKey string) int {
 }
 
 func (lt *LockTable) WriteLock(tr *transaction.Transaction, itemKey string) int {
+
+	if lt.CheckLockExistence(tr.ID(), WriteLock, itemKey) {
+		return -1
+	}
 
 	for _, lock := range lt.locks {
 		if lock.ItemKey == itemKey && lock.TrID != tr.ID() {
@@ -59,6 +67,15 @@ func (lt *LockTable) Unlock(tr *transaction.Transaction, itemKey string) {
 func (lt *LockTable) IsWriteLock(itemKey string) bool {
 	for _, lock := range lt.locks {
 		if lock.ItemKey == itemKey && lock.LockType == WriteLock {
+			return true
+		}
+	}
+	return false
+}
+
+func (lt *LockTable) CheckLockExistence(trID int, lockType TrLockType, itemKey string) bool {
+	for _, lock := range lt.locks {
+		if lock.TrID == trID && lock.LockType == lockType && lock.ItemKey == itemKey {
 			return true
 		}
 	}
