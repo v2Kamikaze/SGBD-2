@@ -6,15 +6,12 @@ import (
 )
 
 func main() {
-	q := "BT(1)r1(x)BT(2)w2(x)r2(y)r1(y)C(1)r2(z)C(2)"
-	//q := "BT(1)r1(x)BT(2)w2(y)r1(y)w2(x)C(1)r2(z)C(2)"
+	//q := "BT(1)r1(x)BT(2)w2(x)r2(y)r1(y)C(1)r2(z)C(2)"
+	q := "BT(1)r1(x)BT(2)w2(y)r1(y)w2(x)C(1)r2(z)C(2)"
 
 	scheduling := src.ParseOperations(q)
 	scheduler := scheduler.New(scheduling)
 	scheduler.Start()
 }
-
-// rl1(x)r1(x)            rl2(y)r2(y)rl1(y)r1(y)C1rl2(z)r2(z)wl2(x)w2(x)C2
-//			  wl2(x)w2(x)
 
 //  quando uma transação está esperando por um bloqueio em um objeto, ela não pode continuar fazendo operações em outros objetos

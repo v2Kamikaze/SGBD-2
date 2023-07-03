@@ -15,7 +15,6 @@ type Scheduler struct {
 
 	scheduling []*transaction.Operation
 	delayed    *lock.Queue
-	//trDelayed  map[int]*lock.Queue
 }
 
 func New(scheduling []*transaction.Operation) *Scheduler {

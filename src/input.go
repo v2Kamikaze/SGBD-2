@@ -11,13 +11,13 @@ import (
 	"github.com/v2Kamikaze/SGBD-2/src/transaction"
 )
 
-func InputTransactions() []string {
+func InputTransactions() []*transaction.Operation {
 
 	scan := bufio.NewReader(os.Stdin)
 
 	if input, err := scan.ReadBytes('\n'); err == nil {
 		input = bytes.Replace(input, []byte("\r\n"), []byte(""), -1)
-		ParseOperations(string(input))
+		return ParseOperations(string(input))
 	}
 
 	return nil
